@@ -1,4 +1,4 @@
-package com.watanabe.restful.services.main;
+package com.watanabe.restful.app;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
