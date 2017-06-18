@@ -9,4 +9,5 @@ public interface IClienteResource {
 	public Cliente getCliente(Long id);
 	public void deleteCliente(Long id);
 	public Cliente insertCliente(Cliente cliente);
+	public Cliente updateCliente(Cliente cliente);
 }

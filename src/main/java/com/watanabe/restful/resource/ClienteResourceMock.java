@@ -33,4 +33,9 @@ public class ClienteResourceMock implements IClienteResource{
 		cliente.id = COUNTER.incrementAndGet();
 		return CLIENTE_DB.put(cliente.id, cliente);
 	}
+	
+	@Override
+	public Cliente updateCliente(Cliente cliente) {
+		return CLIENTE_DB.put(cliente.id, cliente);
+	}
 }

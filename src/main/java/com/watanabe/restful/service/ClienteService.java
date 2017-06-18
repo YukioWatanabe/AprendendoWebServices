@@ -1,26 +1,24 @@
 package com.watanabe.restful.service;
 
-import java.io.InputStream;
 import java.net.URI;
+import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
 
 import com.watanabe.restful.domain.Cliente;
-import com.watanabe.restful.domain.Clientes;
 import com.watanabe.restful.resource.ClienteResourceMock;
 import com.watanabe.restful.resource.IClienteResource;
-import com.watanabe.restful.util.XmlParser;
 
 @Path(value="clientes")
 public class ClienteService {
@@ -33,42 +31,43 @@ public class ClienteService {
 	
 	@POST
 	@Consumes(MediaType.APPLICATION_XML)
-	public Response criarCliente(InputStream is){
-		Cliente cliente = XmlParser.lerArquivo(is, Cliente.class);
+	public Response criarCliente(Cliente cliente){
 		clienteResource.insertCliente(cliente);
 		return Response.created(URI.create("/clientes/"+cliente.id)).build();
 	}
 
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-	public StreamingOutput getClientes(){
-		return (output) -> XmlParser.escreveOutput(output,new Clientes(clienteResource.getAllClientes()));
+	public Response getClientes(){
+		GenericEntity<List<Cliente>> clientes = new GenericEntity<List<Cliente>>(clienteResource.getAllClientes()){};
+		return Response.ok(clientes).build();
 	}
 
 	@GET
 	@Path(value="{id}")
 	@Produces(MediaType.APPLICATION_XML)
-	public StreamingOutput buscarCliente(@PathParam(value="id") Long id){
+	public Response buscarCliente(@PathParam(value="id") Long id){
 		Cliente cliente = clienteResource.getCliente(id);
 
 		if(cliente == null)
-			throw new WebApplicationException(Response.Status.NOT_FOUND);
+			throw new NotFoundException();
 
-		return (output) -> XmlParser.escreveOutput(output,cliente);
+		return Response.ok(cliente).build();
 	}
 
 	@PUT
 	@Path(value="{id}")
 	@Consumes(MediaType.APPLICATION_XML)
-	public Response atualizarCliente(@PathParam(value="id") Long id, InputStream is){
+	public Response atualizarCliente(@PathParam(value="id") Long id, Cliente clienteDoArquivo){
 		Cliente clienteDoBanco = clienteResource.getCliente(id);
 
 		if(clienteDoBanco == null)
-			throw new WebApplicationException(Response.Status.NOT_FOUND);
+			throw new NotFoundException();
 
-		Cliente clienteDoArquivo = XmlParser.lerArquivo(is, Cliente.class);
-		clienteDoBanco.nome = clienteDoArquivo.nome;
+		clienteDoBanco.nome 	 = clienteDoArquivo.nome;
 		clienteDoBanco.sobrenome = clienteDoArquivo.sobrenome;
+		
+		clienteResource.updateCliente(clienteDoBanco);
 		
 		return Response.ok().build();
 	}
@@ -79,7 +78,7 @@ public class ClienteService {
 		Cliente cliente = clienteResource.getCliente(id);
 
 		if(cliente == null)
-			throw new WebApplicationException(Response.Status.NOT_FOUND);
+			throw new NotFoundException();
 		
 		clienteResource.deleteCliente(id);
 		
