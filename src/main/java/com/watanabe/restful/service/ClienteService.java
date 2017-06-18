@@ -15,7 +15,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 
+import com.watanabe.restful.contraint.PathContraints;
 import com.watanabe.restful.domain.Cliente;
 import com.watanabe.restful.resource.ClienteResourceMock;
 import com.watanabe.restful.resource.IClienteResource;
@@ -24,6 +26,7 @@ import com.watanabe.restful.resource.IClienteResource;
 public class ClienteService {
 
 	private final IClienteResource clienteResource;
+	public static final URI CLIENTE_URI = UriBuilder.fromUri(PathContraints.SERVICE_URI).path(ClienteService.class).build();
 	
 	public ClienteService() {
 		clienteResource = new ClienteResourceMock();
@@ -33,7 +36,7 @@ public class ClienteService {
 	@Consumes(MediaType.APPLICATION_XML)
 	public Response criarCliente(Cliente cliente){
 		clienteResource.insertCliente(cliente);
-		return Response.created(URI.create("/clientes/"+cliente.id)).build();
+		return Response.created(UriBuilder.fromUri(CLIENTE_URI).path(cliente.getId().toString()).build()).build();
 	}
 
 	@GET
@@ -64,8 +67,8 @@ public class ClienteService {
 		if(clienteDoBanco == null)
 			throw new NotFoundException();
 
-		clienteDoBanco.nome 	 = clienteDoArquivo.nome;
-		clienteDoBanco.sobrenome = clienteDoArquivo.sobrenome;
+		clienteDoBanco.setNome(clienteDoArquivo.getNome());
+		clienteDoBanco.setSobrenome(clienteDoArquivo.getSobrenome());
 		
 		clienteResource.updateCliente(clienteDoBanco);
 		
@@ -83,6 +86,21 @@ public class ClienteService {
 		clienteResource.deleteCliente(id);
 		
 		return Response.ok().build();
+	}
+	
+	public static enum ClienteServicePath{
+		ID("{id}");
+		
+		private final String path;
+
+		private ClienteServicePath(String path){
+			this.path = path;
+		}
+		
+		public String getPath() {
+			return path;
+		}
+		
 	}
 
 }
